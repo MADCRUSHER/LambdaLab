@@ -1,36 +1,138 @@
-# LambdaLab — Real AWS Connected Version
+# LambdaLab — AWS Serverless Order Processing & Performance Analytics
 
-BCSE355L Cloud Architecture Design — Digital Assignment 3.
+> **BCSE355L — Cloud Architecture Design | Digital Assignment 3**
 
-This version keeps the original Lambda simulator UI but adds a real AWS serverless backend:
+LambdaLab is a web-based lab for exploring an AWS Lambda workflow through a clean dashboard. It combines an interactive frontend with a **deployed AWS serverless backend**, allowing users to submit order data, execute real Lambda invocations, and inspect operational analytics.
 
-- Amazon API Gateway HTTP API
-- AWS Lambda (Python 3.12)
-- Amazon CloudWatch Metrics
-- Amazon CloudWatch Logs
-- IAM execution permissions generated through AWS SAM
-- Custom enhancement: Lambda Performance Intelligence dashboard
+**GitHub:** https://github.com/MADCRUSHER/LambdaLab
+
+## Highlights
+
+- **Real serverless execution:** Submit an order payload through Amazon API Gateway and invoke an AWS Lambda function running Python 3.12.
+- **Order-total calculation:** Calculate subtotal, discount, tax, and final total from a JSON request.
+- **Performance Intelligence dashboard:** Present invocation counts, error counts, success rate, execution-duration history, and logs.
+- **AWS observability:** Use Amazon CloudWatch metrics and logs to help understand the deployed function's behaviour.
+- **Infrastructure as code:** Build and deploy the backend with AWS Serverless Application Model (AWS SAM).
+- **Credential-free frontend:** The browser uses the API Gateway URL; AWS credentials should remain in your local AWS CLI/IAM environment.
 
 ## Architecture
 
-Browser → API Gateway → Lambda → CloudWatch
+```text
+┌───────────────┐      HTTPS       ┌──────────────────┐
+│   Web Browser │ ───────────────▶ │ Amazon API       │
+│  HTML/CSS/JS  │                  │ Gateway (HTTP API)│
+└───────────────┘                  └────────┬─────────┘
+                                            │
+                                            ▼
+                                   ┌──────────────────┐
+                                   │   AWS Lambda     │
+                                   │   Python 3.12    │
+                                   └────────┬─────────┘
+                                            │
+                         ┌──────────────────┴──────────────────┐
+                         ▼                                     ▼
+                ┌──────────────────┐                  ┌──────────────────┐
+                │ CloudWatch Metrics│                  │ CloudWatch Logs  │
+                └──────────────────┘                  └──────────────────┘
 
-The browser never contains AWS access keys. Only the API Gateway URL is placed in `config.js`.
+              IAM execution permissions are defined through AWS SAM
+```
 
-## Deploy to AWS
+### Request flow
+
+1. The user enters an order payload in the browser.
+2. The frontend sends an HTTPS request to the API Gateway endpoint.
+3. API Gateway invokes the deployed Lambda function.
+4. Lambda calculates the order total and returns a JSON response.
+5. CloudWatch provides operational metrics and logs for monitoring and debugging.
+
+## Technology stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | HTML, CSS, JavaScript |
+| API | Amazon API Gateway HTTP API |
+| Compute | AWS Lambda, Python 3.12 |
+| Monitoring | Amazon CloudWatch Metrics and Logs |
+| Permissions | AWS IAM execution role |
+| Deployment | AWS SAM, AWS CLI |
+| Assignment | BCSE355L Cloud Architecture Design — DA-3 |
+
+## Project structure
+
+```text
+LambdaLab/
+├── index.html
+├── style.css
+├── script.js
+├── config.js                 # API Gateway URL for the frontend
+├── package.json
+├── run-local.bat
+├── vercel.json
+├── README.md
+└── aws/
+    ├── template.yaml         # SAM infrastructure definition
+    ├── deploy.bat
+    ├── samconfig.toml.example
+    └── src/
+        ├── app.py            # Lambda handler
+        └── requirements.txt
+```
+
+## Run the frontend locally
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/MADCRUSHER/LambdaLab.git
+cd LambdaLab
+```
+
+### 2. Configure the API URL
+
+Open `config.js` and set `apiBaseUrl` to the `ApiUrl` output from your own SAM deployment.
+
+```javascript
+window.AWS_CONFIG = {
+  apiBaseUrl: "https://YOUR_API_ID.execute-api.ap-south-1.amazonaws.com"
+};
+```
+
+If you are using the already-deployed demo backend, use the API URL configured by the project maintainer. The endpoint is public, so avoid sending private or sensitive data.
+
+### 3. Start a local web server
+
+From the project root, run:
+
+```powershell
+python -m http.server 5500
+```
+
+Then open <http://localhost:5500> in your browser.
+
+Alternatively, on Windows, use `run-local.bat` if it is configured for your environment.
+
+> Opening `index.html` directly as a `file://` URL may cause browser restrictions. Serving it over localhost is recommended.
+
+## Deploy the AWS backend
 
 ### Prerequisites
 
-1. AWS account
-2. AWS CLI configured (`aws configure`)
-3. AWS SAM CLI installed
-4. A region such as `ap-south-1` (Mumbai)
+- An AWS account with permission to create the required resources
+- AWS CLI installed and configured
+- AWS SAM CLI installed
+- Python 3.12 available for the SAM build
+- A target AWS region, such as `ap-south-1` (Mumbai)
 
-### Option A — Windows
+### Option A — Windows deployment script
 
-Open `aws/deploy.bat` and run it.
+From the repository root, run:
 
-Or from PowerShell:
+```powershell
+.\aws\deploy.bat
+```
+
+### Option B — AWS SAM commands
 
 ```powershell
 cd aws
@@ -38,47 +140,48 @@ sam build
 sam deploy --guided
 ```
 
-Recommended answers during guided deployment:
+During guided deployment, choose a stack name and AWS region, and review the IAM permissions and resource changes before confirming. Save the deployment configuration locally if desired; do **not** commit a real `samconfig.toml` if it contains environment-specific settings or sensitive values.
 
-- Stack name: `lambdalab-aws`
-- Region: `ap-south-1`
-- Allow SAM to create IAM roles: `Y`
-- Confirm changes before deploy: `Y`
+After deployment, SAM prints an `ApiUrl` output. Copy that URL into `config.js`:
 
-At the end SAM prints an `ApiUrl` similar to:
-
-`https://abc123.execute-api.ap-south-1.amazonaws.com`
-
-Copy that URL into `config.js`:
-
-```js
+```javascript
 window.AWS_CONFIG = {
-  apiBaseUrl: "https://abc123.execute-api.ap-south-1.amazonaws.com"
+  apiBaseUrl: "https://YOUR_API_ID.execute-api.ap-south-1.amazonaws.com"
 };
 ```
 
-Then open the website again.
+Restart or refresh the local frontend after updating the configuration.
 
-## Test the real AWS connection
+## API endpoints
 
-Health check:
+Replace `<ApiUrl>` with the base URL returned by SAM.
 
-```text
+### Health check
+
+```http
 GET <ApiUrl>/health
 ```
 
-Functions:
+Checks whether the backend is responding.
 
-```text
+### Functions
+
+```http
 GET <ApiUrl>/functions
 ```
 
-Invoke Lambda:
+Lists the functions exposed by the backend, if enabled in the deployed template.
 
-```text
+### Invoke the order calculator
+
+```http
 POST <ApiUrl>/invoke
 Content-Type: application/json
+```
 
+Example request:
+
+```json
 {
   "price": 100,
   "quantity": 3,
@@ -87,35 +190,53 @@ Content-Type: application/json
 }
 ```
 
-Analytics:
+Example calculation:
 
-```text
+- Subtotal: `100 × 3 = ₹300.00`
+- Discount: `₹20.00`
+- Tax: `18% × (₹300.00 − ₹20.00) = ₹50.40`
+- **Total: ₹330.40**
+
+The actual response includes the calculated result and execution metadata. Exact response fields depend on the deployed handler version.
+
+### Analytics
+
+```http
 GET <ApiUrl>/analytics
 ```
 
-The analytics endpoint reads AWS Lambda metrics and CloudWatch log events through the Lambda execution role.
+Returns analytics used by the dashboard, subject to the deployed handler's implementation and IAM permissions.
 
-## Demo flow
+## Demo walkthrough
 
-1. Open the website.
-2. Click **Load Demo**.
-3. Go to **Invoke**.
-4. Send an order JSON payload.
-5. Show the result saying **REAL AWS LAMBDA EXECUTION**.
-6. Open **AWS Architecture** and explain Browser → API Gateway → Lambda → CloudWatch.
-7. Open **Analytics** and show real CloudWatch invocation/error/duration data.
-8. Explain the enhancement: the project turns raw Lambda observability into a simple performance dashboard.
+1. Start the frontend and open it in a browser.
+2. Load the demo payload or enter the sample order above.
+3. Open **Invoke** and submit the request.
+4. Show the successful response from the deployed AWS Lambda backend.
+5. Open **AWS Architecture** and explain the browser → API Gateway → Lambda flow.
+6. Open **Analytics** and explain the displayed invocation, error, duration, and log information.
+7. Describe the enhancement: **Lambda Performance Intelligence** turns operational information into a dashboard that is easier to interpret during a demonstration.
 
-## Security
+For the AWS console walkthrough, open the Lambda function and its **Monitor** section, then inspect the associated CloudWatch logs and metrics.
 
-Never put `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` into `index.html`, `script.js`, `config.js`, or any frontend file. The frontend only knows the API Gateway URL. AWS credentials stay in your AWS CLI environment/IAM setup.
+## Security and cost notes
 
-## Cleanup
+- **Never** put `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, session tokens, or other credentials in frontend files.
+- `config.js` contains an API endpoint, not an AWS credential. However, a public API URL can be called by anyone who obtains it.
+- The deployed demo API currently has no authentication. Do not send personal, confidential, or production data to it. For a public production deployment, add appropriate authorization, throttling, validation, and abuse protections.
+- AWS resources can incur charges. Review AWS pricing and monitor usage while the stack is deployed.
+- Keep local environment-specific configuration and secrets out of Git.
 
-When the assignment is finished, delete the CloudFormation/SAM stack if you no longer need it:
+## Remove the AWS deployment
+
+When you no longer need the stack, delete the **actual stack name used during deployment**. For example, if the stack is named `lambdalab`:
 
 ```powershell
-aws cloudformation delete-stack --stack-name lambdalab-aws --region ap-south-1
+aws cloudformation delete-stack --stack-name lambdalab --region ap-south-1
 ```
 
-This removes the AWS resources created by the stack.
+Check the stack name and region before running the command. Deleting the stack removes resources managed by that CloudFormation stack; verify the AWS console afterward for any resources that remain.
+
+## Learning outcomes
+
+LambdaLab demonstrates a practical serverless workflow: API-based invocation, event-driven compute, infrastructure as code, IAM execution permissions, and monitoring with CloudWatch. The Performance Intelligence dashboard adds an application-level view of operational behaviour to support testing, troubleshooting, and explanation of the architecture.
