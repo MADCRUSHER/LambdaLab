@@ -1,0 +1,368 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LambdaLab</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<aside>
+<div class="brand">
+    λ <span>LambdaLab<small>AWS Lambda Lab</small></span>
+</div>
+
+<nav>
+    <button class="active" data-p="dash">⌂ Dashboard</button>
+    <button data-p="functions">λ Functions</button>
+    <button data-p="invoke">▷ Invoke</button>
+    <button data-p="analytics">◔ Analytics</button>
+    <button data-p="aws">☁ AWS Architecture</button>
+    <button data-p="docs">? Documentation</button>
+</nav>
+
+<div class="status" id="awsStatus">
+    ● AWS Disconnected<br>
+    <small>Configure API Gateway URL</small>
+</div>
+</aside>
+
+<main>
+
+<header>
+    <div>
+        <small>BCSE355L • CLOUD ARCHITECTURE DESIGN • DA-3</small>
+        <h1 id="title">Lambda Dashboard</h1>
+    </div>
+    <button class="primary" id="demo">Load Demo</button>
+</header>
+
+
+<section id="dash" class="page">
+
+<div class="hero">
+    <div>
+        <label id="modeLabel">AWS LAMBDA + API GATEWAY</label>
+        <h2>Run serverless functions without a server.</h2>
+        <p>Invoke a real AWS Lambda function through API Gateway and inspect CloudWatch-backed performance data.</p>
+        <button class="primary" id="newFn">+ Create Function</button>
+    </div>
+
+    <div class="lambda">λ</div>
+</div>
+
+<div class="stats">
+    <div>FUNCTIONS<strong id="fc">0</strong></div>
+    <div>INVOCATIONS<strong id="ic">0</strong></div>
+    <div>SUCCESS RATE<strong id="sr">—</strong></div>
+    <div>AVG RUNTIME<strong id="rt">—</strong></div>
+</div>
+
+<div class="enh">
+    <div>
+        <label>MEANINGFUL ENHANCEMENT</label>
+        <h3>Lambda Performance Intelligence</h3>
+        <p>Monitoring layer inspired by AWS CloudWatch: success rate, failures, runtime and execution history.</p>
+    </div>
+    <button class="secondary" data-p="analytics">Explore →</button>
+</div>
+
+<div class="panel">
+    <h3>Recent executions</h3>
+    <div id="recent"></div>
+</div>
+
+</section>
+
+
+<section id="functions" class="page hide">
+
+<div class="head">
+    <div>
+        <h2>Lambda Functions</h2>
+        <p>Create and configure serverless functions.</p>
+    </div>
+    <button class="primary" id="newFn2">+ Create Function</button>
+</div>
+
+<div id="cards" class="grid"></div>
+
+</section>
+
+
+<section id="invoke" class="page hide">
+
+<div class="head">
+    <div>
+        <h2>Invoke Function</h2>
+        <p>Send an event to the deployed AWS Lambda function.</p>
+    </div>
+</div>
+
+<div class="cols">
+
+<div class="panel">
+
+<label>FUNCTION</label>
+<select id="sel"></select>
+
+<label>EVENT JSON</label>
+
+<textarea id="event">{
+  "price": 100,
+  "quantity": 3,
+  "taxRate": 0.18,
+  "discount": 20
+}</textarea>
+
+<button class="primary full" id="invokeBtn">
+    ▶ Invoke Function
+</button>
+
+</div>
+
+<div class="panel">
+
+<label>EXECUTION RESULT</label>
+
+<div id="result" class="result empty">
+    No invocation yet.
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section id="analytics" class="page hide">
+
+<div class="head">
+    <div>
+        <h2>Performance Analytics</h2>
+        <p>Enhanced observability for the deployed AWS Lambda environment.</p>
+    </div>
+</div>
+
+<div class="cols">
+
+<div class="panel">
+    <h3>Execution Summary</h3>
+    <div id="summary"></div>
+</div>
+
+<div class="panel">
+    <h3>Runtime History</h3>
+    <div id="bars"></div>
+</div>
+
+</div>
+
+<div class="panel">
+    <h3>Invocation Logs</h3>
+    <div id="logs"></div>
+</div>
+
+</section>
+
+
+<section id="aws" class="page hide">
+
+<div class="head">
+
+<div>
+    <h2>AWS Service Coupling</h2>
+    <p>How our deployed Lambda function integrates with Amazon API Gateway, CloudWatch, and IAM.</p>
+</div>
+
+<span class="badge">DEPLOYED AWS ARCHITECTURE</span>
+
+</div>
+
+
+<div class="awsflow">
+
+<div class="svc">
+    🌐
+    <b>API Gateway</b>
+    <small>HTTP trigger</small>
+</div>
+
+<b class="arrow">→</b>
+
+<div class="svc active">
+    λ
+    <b>Lambda</b>
+    <small>Serverless compute</small>
+</div>
+
+<b class="arrow">→</b>
+
+<div class="svc">
+    ◔
+    <b>CloudWatch</b>
+    <small>Logs & metrics</small>
+</div>
+
+</div>
+
+
+<div class="cols">
+
+<div class="panel">
+
+<h3>Request Flow</h3>
+
+<div class="flow">
+    <b>1</b> Client
+    <small>Sends JSON event</small>
+</div>
+
+<div class="flow">
+    <b>2</b> API Gateway
+    <small>Receives request</small>
+</div>
+
+<div class="flow">
+    <b>3</b> Lambda
+    <small>Executes function</small>
+</div>
+
+<div class="flow">
+    <b>4</b> CloudWatch
+    <small>Records logs and metrics</small>
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<h3>Service Mapping</h3>
+
+<div class="row">
+    <b>API Gateway</b>
+    <span>Trigger</span>
+</div>
+
+<div class="row">
+    <b>Lambda</b>
+    <span>Compute</span>
+</div>
+
+<div class="row">
+    <b>CloudWatch</b>
+    <span>Monitoring</span>
+</div>
+
+<div class="row">
+    <b>IAM</b>
+    <span>Permissions</span>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="panel note">
+
+<b>Live AWS mode:</b>
+this dashboard calls Amazon API Gateway, which invokes the real Lambda function.
+Lambda automatically publishes invocation metrics to CloudWatch, and the analytics endpoint reads those metrics and logs for this dashboard.
+
+</div>
+
+</section>
+
+
+<section id="docs" class="page hide">
+
+<div class="panel">
+
+<label>AWS CONCEPTS</label>
+
+<h2>How AWS Lambda works</h2>
+
+<div class="docs">
+
+<article>
+    <b>Function</b>
+    <p>Code packaged for on-demand serverless execution.</p>
+</article>
+
+<article>
+    <b>Event</b>
+    <p>An event payload triggers an invocation.</p>
+</article>
+
+<article>
+    <b>Invocation</b>
+    <p>One request to execute a Lambda function.</p>
+</article>
+
+<article>
+    <b>Runtime</b>
+    <p>The execution environment, such as Python or Node.js.</p>
+</article>
+
+<article>
+    <b>CloudWatch</b>
+    <p>Lambda automatically sends invocation metrics and execution logs to CloudWatch.</p>
+</article>
+
+<article>
+    <b>API Gateway</b>
+    <p>Can expose Lambda through HTTP APIs.</p>
+</article>
+
+</div>
+
+</div>
+
+</section>
+
+
+<div id="modal" class="modal hide">
+
+<div class="modalbox">
+
+<button id="close">×</button>
+
+<h2>Create Function</h2>
+
+<input id="fname" placeholder="calculateTotal">
+
+<select id="runtime">
+    <option>Python 3.12</option>
+    <option>Node.js 22</option>
+    <option>Java 21</option>
+</select>
+
+<select id="trigger">
+    <option>API Gateway</option>
+    <option>EventBridge</option>
+    <option>S3 Event</option>
+</select>
+
+<button class="primary full" id="saveFn">
+    Create Function
+</button>
+
+</div>
+
+</div>
+
+
+<div id="toast"></div>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+
+</main>
+
+</body>
+</html>

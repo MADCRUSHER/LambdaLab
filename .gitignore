@@ -1,0 +1,10 @@
+.aws-sam/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+samconfig.toml
+test.json
+.venv/
+venv/
